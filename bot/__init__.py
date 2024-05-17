@@ -136,8 +136,10 @@ if DATABASE_URL:
             del qbit_opt["_id"]
             qbit_options = qbit_opt
         if nzb_opt := db.settings.nzb.find_one({"_id": bot_id}):
+            if ospath.exists("sabnzbd/SABnzbd.ini.bak"):
+                remove("sabnzbd/SABnzbd.ini.bak")
             del nzb_opt["_id"]
-            (key, value), = nzb_opt.items()
+            ((key, value),) = nzb_opt.items()
             file_ = key.replace("__", ".")
             with open(f"sabnzbd/{file_}", "wb+") as f:
                 f.write(value)
@@ -200,7 +202,7 @@ if DEFAULT_UPLOAD != "rc":
 
 DOWNLOAD_DIR = environ.get("DOWNLOAD_DIR", "")
 if len(DOWNLOAD_DIR) == 0:
-    DOWNLOAD_DIR = "/usr/src/app/Downloads/"
+    DOWNLOAD_DIR = "/usr/src/app/downloads/"
 elif not DOWNLOAD_DIR.endswith("/"):
     DOWNLOAD_DIR = f"{DOWNLOAD_DIR}/"
 
@@ -250,13 +252,17 @@ if len(JD_EMAIL) == 0 or len(JD_PASS) == 0:
     JD_EMAIL = ""
     JD_PASS = ""
 
-USENET_HOST = environ.get("USENET_HOST", "")
-USENET_USERNAME = environ.get("USENET_USERNAME", "")
-USENET_PASSWORD = environ.get("USENET_PASSWORD", "")
-if len(USENET_HOST) == 0 or len(USENET_USERNAME) == 0 or len(USENET_PASSWORD) == 0:
-    USENET_HOST = ""
-    USENET_USERNAME = ""
-    USENET_PASSWORD = ""
+USENET_SERVERS = environ.get("USENET_SERVERS", "")
+try:
+    if len(USENET_SERVERS) == 0:
+        USENET_SERVERS = []
+    elif not eval(USENET_SERVERS)[0]["host"]:
+        USENET_SERVERS = []
+    else:
+        USENET_SERVERS = eval(USENET_SERVERS)
+except:
+    log_error(f"Wrong USENET_SERVERS format: {USENET_SERVERS}")
+    USENET_SERVERS = []
 
 FILELION_API = environ.get("FILELION_API", "")
 if len(FILELION_API) == 0:
@@ -281,6 +287,12 @@ if len(LEECH_FILENAME_PREFIX) == 0:
 SEARCH_PLUGINS = environ.get("SEARCH_PLUGINS", "")
 if len(SEARCH_PLUGINS) == 0:
     SEARCH_PLUGINS = ""
+else:
+    try:
+        SEARCH_PLUGINS = eval(SEARCH_PLUGINS)
+    except:
+        log_error(f"Wrong USENET_SERVERS format: {SEARCH_PLUGINS}")
+        SEARCH_PLUGINS = ""
 
 MAX_SPLIT_SIZE = 4194304000 if IS_PREMIUM_USER else 2097152000
 
@@ -452,9 +464,7 @@ config_dict = {
     "USER_TRANSMISSION": USER_TRANSMISSION,
     "UPSTREAM_REPO": UPSTREAM_REPO,
     "UPSTREAM_BRANCH": UPSTREAM_BRANCH,
-    "USENET_HOST": USENET_HOST,
-    "USENET_USERNAME": USENET_USERNAME,
-    "USENET_PASSWORD": USENET_PASSWORD,
+    "USENET_SERVERS": USENET_SERVERS,
     "USER_SESSION_STRING": USER_SESSION_STRING,
     "USE_SERVICE_ACCOUNTS": USE_SERVICE_ACCOUNTS,
     "WEB_PINCODE": WEB_PINCODE,
@@ -543,18 +553,22 @@ bot_name = bot.me.username
 
 scheduler = AsyncIOScheduler(timezone=str(get_localzone()), event_loop=bot_loop)
 
-if not qbit_options:
-    qbit_options = dict(get_qb_client().app_preferences())
-    del qbit_options["listen_port"]
-    for k in list(qbit_options.keys()):
-        if k.startswith("rss"):
-            del qbit_options[k]
-else:
-    qb_opt = {**qbit_options}
-    for k, v in list(qb_opt.items()):
-        if v in ["", "*"]:
-            del qb_opt[k]
-    get_qb_client().app_set_preferences(qb_opt)
+def get_qb_options():
+    global qbit_options
+    if not qbit_options:
+        qbit_options = dict(get_qb_client().app_preferences())
+        del qbit_options["listen_port"]
+        for k in list(qbit_options.keys()):
+            if k.startswith("rss"):
+                del qbit_options[k]
+    else:
+        qb_opt = {**qbit_options}
+        for k, v in list(qb_opt.items()):
+            if v in ["", "*"]:
+                del qb_opt[k]
+        get_qb_client().app_set_preferences(qb_opt)
+
+get_qb_options()
 
 aria2 = ariaAPI(ariaClient(host="http://localhost", port=6800, secret=""))
 if not aria2_options:

@@ -5,6 +5,7 @@ from urllib3.exceptions import InsecureRequestWarning
 from functools import wraps
 
 from .job_functions import JobFunctions
+from .exception import APIConnectionError
 
 
 class sabnzbdSession(AsyncClient):
@@ -70,7 +71,8 @@ class sabnzbdClient(JobFunctions):
         session = self._session()
         params |= kwargs
         requests_kwargs = {**self._HTTPX_REQUETS_ARGS, **requests_args}
-        retries = 3
+        retries = 5
+        response = None
         for retry_count in range(retries):
             try:
                 res = await session.request(
@@ -80,18 +82,21 @@ class sabnzbdClient(JobFunctions):
                     **requests_kwargs,
                 )
                 response = res.json()
+                break
             except DecodingError as e:
                 raise DecodingError(f"Failed to decode response!: {res.text}") from e
-            except Exception:
+            except APIConnectionError as err:
                 if retry_count >= (retries - 1):
-                    raise
+                    raise err
+        if response is None:
+            raise APIConnectionError("Failed to connect to API!")
         return response
 
     async def check_login(self):
         res = await self.get_config("servers")
         if res["config"]:
             self.LOGGED_IN = True
-            return True
+            return res["config"]
         else:
             return False
 

@@ -13,10 +13,12 @@ from bot.helper.ext_utils.status_utils import (
 async def get_download(client, nzo_id, old_info=None):
     try:
         res = await client.get_downloads(nzo_ids=nzo_id)
-        slot = res["queue"]["slots"][0]
-        if msg := slot["labels"]:
-            LOGGER.warning(msg.join(" | "))
-        return slot or old_info
+        if res["queue"]["slots"]:
+            slot = res["queue"]["slots"][0]
+            if msg := slot["labels"]:
+                LOGGER.warning(" | ".join(msg))
+            return slot
+        return old_info
     except Exception as e:
         LOGGER.error(f"{e}: Sabnzbd, while getting job info. ID: {nzo_id}")
         return old_info
@@ -45,7 +47,7 @@ class SabnzbdStatus:
 
     def speed_raw(self):
         try:
-            return int(float(self._info["mbleft"]) * 1048576) / self.eta_raw()
+            return int(float(self._info["mb"]) * 1048576) / self.eta_raw()
         except:
             return 0
 
