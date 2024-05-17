@@ -123,7 +123,7 @@ async def add_jd_download(listener, path):
             if odl_list := [
                 od["uuid"]
                 for od in odl
-                if od.get("saveTo", "").startswith("/root/Downloads/")
+                if od.get("saveTo", "").startswith("/home/ubuntu/Downloads/")
             ]:
                 await retry_function(
                     jdownloader.device.linkgrabber.remove_links,
@@ -195,8 +195,8 @@ async def add_jd_download(listener, path):
                 if gid == 0:
                     gid = pack["uuid"]
                     jd_downloads[gid] = {"status": "collect"}
-                    if save_to.startswith("/root/Downloads/"):
-                        name = save_to.replace("/root/Downloads/", "", 1).split("/", 1)[
+                    if save_to.startswith("/home/ubuntu/Downloads/"):
+                        name = save_to.replace("/home/ubuntu/Downloads/", "", 1).split("/", 1)[
                             0
                         ]
                     else:
@@ -210,10 +210,10 @@ async def add_jd_download(listener, path):
 
                 listener.size += pack.get("bytesTotal", 0)
                 online_packages.append(pack["uuid"])
-                if save_to.startswith("/root/Downloads/"):
+                if save_to.startswith("/home/ubuntu/Downloads/"):
                     await retry_function(
                         jdownloader.device.linkgrabber.set_download_directory,
-                        save_to.replace("/root/Downloads", path, 1),
+                        save_to.replace("/home/ubuntu/Downloads", path, 1),
                         [pack["uuid"]],
                     )
 
