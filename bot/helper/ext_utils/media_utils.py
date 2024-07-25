@@ -26,7 +26,7 @@ async def convert_video(listener, video_file, ext, retry=False):
             "-c:a",
             "aac",
             "-threads",
-            f"{cpu_count() // 2}",
+            f"{2 // 2}",
             output,
         ]
         if ext == "mp4":
@@ -73,7 +73,7 @@ async def convert_audio(listener, audio_file, ext):
         "-i",
         audio_file,
         "-threads",
-        f"{cpu_count() // 2}",
+        f"{2 // 2}",
         output,
     ]
     if listener.isCancelled:
@@ -537,7 +537,7 @@ async def createSampleVideo(listener, video_file, sample_duration, part_duration
         "-c:a",
         "aac",
         "-threads",
-        f"{cpu_count() // 2}",
+        f"{2 // 2}",
         output_file,
     ]
 
