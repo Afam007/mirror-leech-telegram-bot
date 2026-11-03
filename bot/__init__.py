@@ -36,7 +36,7 @@ basicConfig(
 
 LOGGER = getLogger(__name__)
 cpu_no = cpu_count()
-threads = max(1, cpu_no // 2)
+threads = max(1, cpu_no)
 cores = ",".join(str(i) for i in reversed(range(threads)))
 
 DOWNLOAD_DIR = "/app/downloads/"
