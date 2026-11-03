@@ -36,8 +36,8 @@ basicConfig(
 
 LOGGER = getLogger(__name__)
 cpu_no = cpu_count()
-threads = max(1, cpu_no)
-cores = ",".join(str(i) for i in reversed(range(threads)))
+threads = 0
+cores = ",".join(str(i) for i in reversed(range(cpu_no)))
 
 DOWNLOAD_DIR = "/app/downloads/"
 intervals = {"status": {}, "qb": "", "jd": "", "nzb": "", "stopAll": False}
