@@ -765,6 +765,7 @@ class TaskConfig:
                 self.proceed_count = 0
                 cmd = [
                     "ffmpeg",
+                    "-test",
                     "-hide_banner",
                     "-loglevel",
                     "error",
